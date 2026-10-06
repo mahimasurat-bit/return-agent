@@ -1,0 +1,34 @@
+{
+  "name": "return-agent",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test:pipeline": "LOCAL_DATA_FILE=.data/test-pipeline.json tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-pipeline.mts",
+    "dev:fake": "RA_FAKE_PROVIDERS=1 APP_SECRET=${APP_SECRET:-local-dev-secret-local-dev-secret-0001} ALLOWED_EMAILS=${ALLOWED_EMAILS:-test@example.com} LOCAL_DATA_FILE=.data/fake.json next dev"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
+    "@supabase/supabase-js": "^2.117.2",
+    "geist": "^1.7.2",
+    "lucide-react": "^1.52.0",
+    "next": "16.3.8",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.8",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  }
+}
