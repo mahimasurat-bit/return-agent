@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { Plus, RefreshCw, RotateCcw, ShieldCheck } from "lucide-react";
+import { LayoutGrid, Plus, RefreshCw, RotateCcw, ShieldCheck } from "lucide-react";
 import { StoreProvider, useActions, useStore } from "@/lib/store";
 import { Onboarding } from "./Onboarding";
 import { Discovery } from "./Discovery";
-import { AgentActivityFeed, AgentInsight, AttentionAlert, ReturnsInbox, SummaryHero, TrustNote } from "./Dashboard";
+import { LayoutProvider, ModularDashboard, useLayoutEditing } from "./ModularDashboard";
 import { ReturnFlow } from "./ReturnFlow";
 import { CodesSheetBody } from "./DropOff";
 import { AccountSheetBody, AddPurchaseBody, EmailSheetBody, OrderSheetBody, PrivacySheetBody, ReviewSheetBody } from "./Sheets";
@@ -50,27 +50,14 @@ function MainApp() {
 
   return (
     <UIContext.Provider value={ui}>
+      <LayoutProvider>
       <div className="mx-auto max-w-6xl px-5 pb-24 sm:px-8">
         <Header />
-        <div className="flex flex-col gap-4 animate-fade-up">
-          <div className="grid gap-4 lg:grid-cols-[1.15fr_1fr]">
-            <SummaryHero />
-            <AgentInsight />
-          </div>
-          <AttentionAlert />
-        </div>
-        <div className="mt-14">
-          <ReturnsInbox />
-        </div>
-        <div className="mt-16">
-          <AgentActivityFeed />
-        </div>
-        <div className="mt-6">
-          <TrustNote />
-        </div>
+        <ModularDashboard />
         <Footer />
       </div>
       <Sheets />
+      </LayoutProvider>
     </UIContext.Provider>
   );
 }
@@ -78,6 +65,7 @@ function MainApp() {
 function Header() {
   const { state } = useStore();
   const ui = useUI();
+  const { editing, setEditing } = useLayoutEditing();
   return (
     <>
       <header className="flex items-center justify-between gap-4 py-6 sm:py-8">
@@ -101,6 +89,16 @@ function Header() {
               <ShieldCheck size={13} />
             </button>
           )}
+          <Button
+            size="sm"
+            variant={editing ? "primary" : "secondary"}
+            onClick={() => setEditing(!editing)}
+            aria-label="Customize dashboard"
+            aria-pressed={editing}
+          >
+            <LayoutGrid size={15} />
+            <span className="hidden sm:inline">{editing ? "Done" : "Customize"}</span>
+          </Button>
           <Button size="sm" onClick={() => ui.openSheet({ kind: "add" })} aria-label="Add purchase">
             <Plus size={16} />
             <span className="hidden sm:inline">Add purchase</span>
