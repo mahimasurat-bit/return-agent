@@ -13,7 +13,7 @@ export async function GET() {
   }
   const inbox = s ? await getRepo().getInbox(s.userId) : null;
   return NextResponse.json({
-    config: { gmail: config.gmail, extraction: config.extraction, digest: config.digest, storage: config.storage, missing: config.missing },
+    config: { gmail: config.gmail, extraction: config.extraction, digest: config.digest, sampleDigest: config.sampleDigest, storage: config.storage, missing: config.missing },
     signedIn: !!(s && inbox),
     email: s?.email ?? null,
     lastSyncedAt: inbox?.lastSyncedAt ?? null,

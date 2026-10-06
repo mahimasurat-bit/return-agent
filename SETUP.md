@@ -133,6 +133,20 @@ Optional: put these in `.env.local` too and restart `npm run dev` to use Supabas
 
 `vercel.json` schedules `/api/cron/sync` once a day (13:00 UTC, about 6am Pacific). Vercel sends your `CRON_SECRET` automatically. Check it ran under Vercel → your project → **Settings → Cron Jobs** (or **Logs**). You can always hit **Sync** in the app too.
 
+## Quick test: email yourself a sample digest (no Gmail setup)
+
+See a real digest email in your inbox using the demo data. Only needs Resend.
+
+1. **resend.com** → sign up with the email you want the sample sent to → **API Keys** → **Create API key** → copy it.
+2. Vercel → your project → **Settings → Environment Variables** → add:
+   - `RESEND_API_KEY` = the key
+   - `DIGEST_TO` = that same email address
+3. **Deployments** → latest → **⋯ → Redeploy**.
+4. Open your site once with `?owner=1` on the end (e.g. `https://return-agent-lac.vercel.app/?owner=1`). This shows the sample button in your browser only. Testers never see it.
+5. **Try with demo purchases** → **Digest** → **Send a sample to me**. Check your inbox (and spam) within a minute.
+
+Samples only ever go to `DIGEST_TO`, at most one a minute.
+
 ## 8. Email digest (optional, about 5 minutes)
 
 Return Agent can email you instead of you opening the app: every 2 days, sooner if a return is due within 2 days, and nothing on quiet days. It needs your real Gmail connected (steps 1 to 7).

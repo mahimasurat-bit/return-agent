@@ -491,6 +491,32 @@ export function DigestSheetBody() {
   const [sending, setSending] = useState(false);
   const live = state.mode === "live";
   const every = 2;
+  // The sample button is for the site owner only: visit the site once with ?owner=1 to reveal it.
+  const [owner] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      if (new URLSearchParams(window.location.search).get("owner") === "1") localStorage.setItem("ra-owner", "1");
+      return localStorage.getItem("ra-owner") === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  const sendSample = async () => {
+    setSending(true);
+    setStatus(null);
+    try {
+      const r = await fetch("/api/digest/sample", { method: "POST" });
+      const j = (await r.json()) as { sent: boolean; reason?: string; detail?: string };
+      if (j.sent) setStatus({ tone: "ok", text: "Sample sent. Check your inbox (and spam) in about a minute." });
+      else if (j.reason === "not_configured")
+        setStatus({ tone: "err", text: "Add RESEND_API_KEY and DIGEST_TO in Vercel, then redeploy." });
+      else setStatus({ tone: "err", text: j.detail ?? "Couldn’t send the sample." });
+    } catch {
+      setStatus({ tone: "err", text: "Couldn’t reach the server." });
+    }
+    setSending(false);
+  };
   const digest = buildDigest(state, {
     appUrl: typeof window !== "undefined" ? window.location.origin : "",
     since: null,
@@ -524,6 +550,12 @@ export function DigestSheetBody() {
           {live ? "Preview of your next digest" : "What the digest looks like for the demo inbox"}
           {!digest.shouldSend && " · nothing to report right now, so none would be sent"}
         </span>
+        {!live && owner && (
+          <Button size="sm" onClick={sendSample} disabled={sending}>
+            <Mail size={14} />
+            {sending ? "Sending…" : "Send a sample to me"}
+          </Button>
+        )}
         {live && (
           <Button size="sm" onClick={sendNow} disabled={sending || server?.digest === false}>
             <Mail size={14} />

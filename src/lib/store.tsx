@@ -28,6 +28,8 @@ export interface ServerConfig {
   gmail: boolean;
   extraction: boolean;
   digest?: boolean;
+  /** RESEND_API_KEY + DIGEST_TO are set: the owner can email themselves a sample. */
+  sampleDigest?: boolean;
   storage: string;
   missing: string[];
 }

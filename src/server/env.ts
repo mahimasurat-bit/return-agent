@@ -30,6 +30,7 @@ export interface ConfigStatus {
   gmail: boolean;
   extraction: boolean;
   digest: boolean;
+  sampleDigest: boolean;
   storage: "supabase" | "local-file";
   secret: boolean;
   allowlist: boolean;
@@ -49,6 +50,7 @@ export function configStatus(): ConfigStatus {
     gmail: !!(env.googleClientId && env.googleClientSecret && env.appSecret.length >= 32 && env.allowedEmails.length),
     extraction: !!env.anthropicKey,
     digest: !!env.resendKey,
+    sampleDigest: !!(env.resendKey && env.digestTo),
     storage: supabase ? "supabase" : "local-file",
     secret: env.appSecret.length >= 32,
     allowlist: env.allowedEmails.length > 0,
