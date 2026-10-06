@@ -32,6 +32,8 @@ export interface Extraction {
   returnDeadlineQuote: string | null;
   returnMethod: ReturnMethodId | null;
   returnCode: string | null;
+  /** The retailer's own QR/barcode image from the email (one of the image candidates). */
+  returnCodeImageUrl: string | null;
   trackingNumber: string | null;
   refundAmount: number | null;
   /** Fields the model returned that failed verification against the email text. */
@@ -73,6 +75,7 @@ Rules:
 - return_deadline: ONLY if the email explicitly states a date by which the item must be returned. Do not compute it from a policy length. If you set it, return_deadline_quote must be the exact sentence from the email that states it.
 - return_method: only if the email says where to take the return (UPS, FedEx, USPS/post office, a store, or mail/pickup).
 - image_url: only one of the listed image candidates whose alt text clearly matches that item; otherwise null.
+- return_code_image_url: for return emails, the image candidate that is the return QR code or barcode to show at drop-off; otherwise null.
 - One entry per distinct item. Skip shipping, tax, gift wrap and discount lines.
 - retailer_name: the store the person bought from (e.g. "Nordstrom"), not a payment or shipping company.`;
 
@@ -107,6 +110,7 @@ const TOOL: Anthropic.Tool = {
       return_deadline_quote: { type: ["string", "null"] },
       return_method: { type: ["string", "null"], enum: [...METHODS, null] },
       return_code: { type: ["string", "null"] },
+      return_code_image_url: { type: ["string", "null"], description: "One of the image candidates: the return QR code or barcode" },
       tracking_number: { type: ["string", "null"] },
       refund_amount: { type: ["number", "null"] },
     },
@@ -214,6 +218,10 @@ export function verifyExtraction(raw: Record<string, unknown>, email: ParsedEmai
     returnDeadlineQuote: returnDeadline ? quote : null,
     returnMethod: method && (METHODS as readonly string[]).includes(method) ? (method as ReturnMethodId) : null,
     returnCode,
+    returnCodeImageUrl: (() => {
+      const u = str(raw.return_code_image_url);
+      return u && imageSrcs.has(u) ? u : null;
+    })(),
     trackingNumber: str(raw.tracking_number),
     refundAmount,
     rejected,

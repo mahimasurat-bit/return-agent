@@ -6,7 +6,7 @@ import { daysUntil, fmtDay, money } from "./dates";
 import type { DataState } from "./domain";
 import { retailerOf, RETURN_METHODS } from "./retailers";
 import { attentionItems, dropOffGroups, refundRows, summary } from "./selectors";
-import type { Purchase } from "./types";
+import type { Purchase, Return } from "./types";
 
 export interface DigestOptions {
   appUrl: string;
@@ -35,9 +35,15 @@ function due(p: Purchase) {
 }
 
 export function buildDigest(data: DataState, o: DigestOptions): Digest {
+  const gmailLink = (emailId: string | null | undefined) => {
+    const e = emailId ? data.emails.find((x) => x.id === emailId) : undefined;
+    return e?.provider === "gmail" && e.externalMessageId ? `https://mail.google.com/mail/u/0/#all/${e.externalMessageId}` : null;
+  };
   const s = summary(data);
   const attention = attentionItems(data);
-  const trip = dropOffGroups(data)[0];
+  const trips = dropOffGroups(data);
+  const trip = trips[0];
+  const otherTrips = trips.slice(1);
   const overdue = refundRows(data).filter((r) => r.overdue);
   const fresh = o.since
     ? data.purchases.filter((p) => p.status === "decide" && p.createdAt > o.since! && !attention.includes(p))
@@ -66,7 +72,11 @@ export function buildDigest(data: DataState, o: DigestOptions): Digest {
   }
   if (trip) {
     t.push(`YOUR BEST TRIP: ${trip.label}`);
-    for (const { purchase } of trip.items) t.push(`- ${retailerOf(purchase).name} ${purchase.itemName}`);
+    for (const { purchase, ret } of trip.items) {
+      t.push(`- ${retailerOf(purchase).name} ${purchase.itemName}${ret.artifact?.code ? `  ·  code ${ret.artifact.code}` : ""}`);
+      const link = gmailLink(ret.emailSourceId);
+      if (link) t.push(`  Return email: ${link}`);
+    }
     t.push(`${money(trip.total)} back`, "");
   }
   if (overdue.length) {
@@ -95,6 +105,33 @@ export function buildDigest(data: DataState, o: DigestOptions): Digest {
     </td></tr>`;
   const label = (p: Purchase) => `${esc(retailerOf(p).name)} · ${esc(p.itemName)}`;
 
+  /** The code to show at the counter: retailer's own image if we have it, else a QR made from the code. */
+  function codeBlock(p: Purchase, ret: Return) {
+    const a = ret.artifact;
+    if (!a?.code) return "";
+    const demo = ret.simulated || data.emails.find((e) => e.id === ret.emailSourceId)?.provider === "demo";
+    const link = gmailLink(ret.emailSourceId);
+    const img = a.imageUrl ?? (a.type !== "label" && o.appUrl ? `${o.appUrl.replace(/\/$/, "")}/api/qr?d=${encodeURIComponent(a.code)}` : null);
+    const note = demo
+      ? "Demo code · not a real return code"
+      : a.imageUrl
+        ? `From your ${esc(retailerOf(p).name)} return email`
+        : a.type === "label"
+          ? "Printable label: open the return email"
+          : "Made from the code in your return email";
+    return `<tr><td colspan="2" style="padding:0 0 14px">
+      <table cellpadding="0" cellspacing="0" role="presentation" style="background:${C.bg};border-radius:14px;width:100%"><tr>
+        ${img ? `<td width="132" style="padding:12px"><img src="${esc(img)}" width="120" height="120" alt="Return code ${esc(a.code)}" style="display:block;border-radius:8px;background:#fff"></td>` : ""}
+        <td style="padding:12px ${img ? "12px 12px 0" : "16px"}">
+          <div style="font-family:Menlo,Consolas,monospace;font-size:15px;font-weight:600;color:${C.ink};letter-spacing:0.5px">${esc(a.code)}</div>
+          ${a.trackingNumber ? `<div style="font-size:12px;color:${C.muted};margin-top:2px">Tracking ${esc(a.trackingNumber)}</div>` : ""}
+          <div style="font-size:12px;color:${C.muted};margin-top:6px">${note}</div>
+          ${link ? `<a href="${esc(link)}" style="display:inline-block;margin-top:8px;font-size:13px;font-weight:600;color:${C.ink}">Open return email</a>` : ""}
+        </td>
+      </tr></table>
+    </td></tr>`;
+  }
+
   let body = "";
   if (attention.length)
     body += section(
@@ -109,10 +146,15 @@ export function buildDigest(data: DataState, o: DigestOptions): Digest {
   if (trip)
     body += section(
       `Your best trip · ${esc(trip.label)}`,
-      trip.items.map(({ purchase }) => row(label(purchase), money(purchase.price))).join("") +
+      trip.items.map(({ purchase, ret }) => row(label(purchase), money(purchase.price)) + codeBlock(purchase, ret)).join("") +
         row(`${trip.items.length} ${trip.items.length === 1 ? "item" : "items"}, one stop`, `<span style="color:${C.money}">${money(trip.total)} back</span>`,
           trip.methodId === "other" ? undefined : esc(RETURN_METHODS[trip.methodId].instructions)),
-    );
+    ) +
+    (otherTrips.length
+      ? `<tr><td style="padding:8px 28px 0;font-size:13px;color:${C.muted}">Also ready: ${otherTrips
+          .map((g) => `${esc(g.label)} · ${g.items.length} ${g.items.length === 1 ? "item" : "items"}`)
+          .join(", ")}. Codes are in the app.</td></tr>`
+      : "");
   if (overdue.length)
     body += section(
       "Refunds to chase",

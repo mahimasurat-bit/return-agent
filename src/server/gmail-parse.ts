@@ -75,8 +75,16 @@ export function htmlToText(html: string): { text: string; images: { src: string;
     const src = /\bsrc\s*=\s*["']([^"']+)["']/i.exec(tag)?.[1];
     const alt = decodeEntities(/\balt\s*=\s*["']([^"']*)["']/i.exec(tag)?.[1] ?? "").trim();
     const w = Number(/\bwidth\s*=\s*["']?(\d+)/i.exec(tag)?.[1] ?? 999);
-    if (src && src.startsWith("https://") && alt && w >= 50 && !/logo|spacer|pixel|icon|facebook|instagram|twitter|tiktok|pinterest|youtube/i.test(src + alt)) {
-      images.push({ src, alt });
+    const looksLikeCode = /qr|barcode|return.?code|label/i.test(src ?? "") || /qr|barcode|return code/i.test(alt);
+    if (
+      src &&
+      src.startsWith("https://") &&
+      (alt || looksLikeCode) &&
+      w >= 50 &&
+      !/logo|spacer|pixel|icon|facebook|instagram|twitter|tiktok|pinterest|youtube/i.test(src + alt)
+    ) {
+      // Return QR codes often have no alt text; label them so the extractor can recognize them.
+      images.push({ src, alt: alt || (looksLikeCode ? "QR / barcode image" : "") });
     }
     return " ";
   });

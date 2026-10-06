@@ -27,6 +27,10 @@ assert.match(d.subject, /2 returns due soon · \$308 at risk/);
 assert.match(d.html, /Pegasus 41/);
 assert.match(d.html, /UPS Store/);
 assert.match(d.text, /REFUNDS TO CHASE/);
+assert.match(d.html, /https:\/\/x\.test\/api\/qr\?d=1Z-RA-7K2Q-HK91/, "QR image for trip item");
+assert.match(d.html, /Demo code · not a real return code/);
+assert.match(d.html, /Also ready: /);
+assert.match(d.text, /code 1Z-RA-7K2Q-HK91/);
 
 // Quiet day: nothing due, nothing new, nothing overdue → no email
 const quiet = buildDigest(EMPTY_DATA, { appUrl: "", since: null, everyDays: 2 });

@@ -191,8 +191,14 @@ export function applyExtraction(input: DataState, email: ParsedEmail, ex: Extrac
           createdAt: existing?.createdAt ?? email.receivedAt,
           droppedOffAt: existing?.droppedOffAt ?? null,
           artifact: ex.returnCode
-            ? { type: RETURN_METHODS[methodId].artifact, code: ex.returnCode, trackingNumber: ex.trackingNumber }
+            ? {
+                type: RETURN_METHODS[methodId].artifact,
+                code: ex.returnCode,
+                trackingNumber: ex.trackingNumber,
+                imageUrl: ex.returnCodeImageUrl,
+              }
             : (existing?.artifact ?? null),
+          emailSourceId: emailId,
           simulated: false,
         };
         data.returns = [...data.returns.filter((r) => r.purchaseId !== p.id), ret];

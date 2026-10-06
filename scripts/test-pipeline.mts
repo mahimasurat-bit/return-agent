@@ -76,6 +76,8 @@ const ret = d.returns.find((x) => x.purchaseId === cardigan.id)!;
 assert.equal(ret.methodId, "ups");
 assert.equal(ret.artifact?.code, "RTN-7Q4P-ZK21");
 assert.equal(ret.simulated, false);
+assert.equal(ret.artifact?.imageUrl, "https://static.zara.net/returns/qr/RTN-7Q4P-ZK21.png", "retailer QR image kept");
+assert.ok(ret.emailSourceId?.startsWith("gm_"), "return links to its email");
 
 const mugs = byName("Stoneware Mug Set");
 assert.equal(mugs.status, "refunded");

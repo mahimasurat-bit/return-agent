@@ -1,12 +1,15 @@
 "use client";
 
 /**
- * PLACEHOLDER return artifacts.
- * The QR pattern is generated from the code string for visual realism only.
- * It is not a scannable or valid carrier code.
+ * Return artifacts. When the retailer's own QR image was found in the return
+ * email it is shown as-is. Otherwise the code is rendered as a QR so it can be
+ * shown at a counter; demo codes are placeholders and labeled as such.
  */
 import { RETURN_METHODS, retailerOf } from "@/lib/retailers";
 import { fmtDay, money } from "@/lib/dates";
+import QRCode from "qrcode";
+import { useStore } from "@/lib/store";
+import { DEMO_USER_ID } from "@/lib/fixtures/demo-data";
 import type { Purchase, Return } from "@/lib/types";
 
 function hash(s: string) {
@@ -23,29 +26,17 @@ function hash(s: string) {
   };
 }
 
+/** Renders the code as a real QR matrix (same encoding as the emailed QR image). */
 export function PlaceholderQR({ value, size = 184 }: { value: string; size?: number }) {
-  const n = 25;
-  const rnd = hash(value);
+  const { size: n, data } = QRCode.create(value, { errorCorrectionLevel: "M" }).modules;
   const cells: [number, number][] = [];
-  const inFinder = (x: number, y: number) =>
-    (x < 8 && y < 8) || (x >= n - 8 && y < 8) || (x < 8 && y >= n - 8);
-  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (!inFinder(x, y) && rnd() > 0.52) cells.push([x, y]);
-  const finder = (x: number, y: number) => (
-    <g key={`${x}-${y}`}>
-      <rect x={x} y={y} width={7} height={7} rx={1.6} fill="#111" />
-      <rect x={x + 1} y={y + 1} width={5} height={5} rx={1.1} fill="#fff" />
-      <rect x={x + 2} y={y + 2} width={3} height={3} rx={0.8} fill="#111" />
-    </g>
-  );
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (data[y * n + x]) cells.push([x, y]);
   return (
-    <svg viewBox={`-2 -2 ${n + 4} ${n + 4}`} width={size} height={size} role="img" aria-label="Placeholder return QR code">
-      <rect x={-2} y={-2} width={n + 4} height={n + 4} rx={3} fill="#fff" />
+    <svg viewBox={`-2 -2 ${n + 4} ${n + 4}`} width={size} height={size} role="img" aria-label={`QR code for ${value}`} shapeRendering="crispEdges">
+      <rect x={-2} y={-2} width={n + 4} height={n + 4} fill="#fff" />
       {cells.map(([x, y]) => (
-        <rect key={`${x}.${y}`} x={x + 0.08} y={y + 0.08} width={0.84} height={0.84} rx={0.22} fill="#111" />
+        <rect key={`${x}.${y}`} x={x} y={y} width={1.02} height={1.02} fill="#111" />
       ))}
-      {finder(0, 0)}
-      {finder(n - 7, 0)}
-      {finder(0, n - 7)}
     </svg>
   );
 }
@@ -104,23 +95,48 @@ export function PlaceholderLabel({ purchase, ret }: { purchase: Purchase; ret: R
 }
 
 export function ReturnArtifactView({ purchase, ret, size = 184 }: { purchase: Purchase; ret: Return; size?: number }) {
+  const { state } = useStore();
   const method = RETURN_METHODS[ret.methodId];
   const isLabel = ret.artifact?.type === "label";
+  const demo = purchase.userId === DEMO_USER_ID;
+  const email = ret.emailSourceId ? state.emails.find((e) => e.id === ret.emailSourceId) : undefined;
+  const gmailLink =
+    email?.provider === "gmail" && email.externalMessageId
+      ? `https://mail.google.com/mail/u/0/#all/${email.externalMessageId}`
+      : null;
+  const original = ret.artifact?.imageUrl;
+
   return (
     <div className="flex flex-col items-center gap-3">
-      {isLabel ? (
+      {isLabel && !original ? (
         <PlaceholderLabel purchase={purchase} ret={ret} />
       ) : (
         <div className="rounded-3xl border border-line bg-white p-4 shadow-[0_1px_0_rgba(0,0,0,0.03)]">
-          <PlaceholderQR value={ret.artifact?.code ?? ret.id} size={size} />
+          {original ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={original} alt={`${retailerOf(purchase).name} return code`} style={{ maxWidth: size, maxHeight: size }} />
+          ) : (
+            <PlaceholderQR value={ret.artifact?.code ?? ret.id} size={size} />
+          )}
         </div>
       )}
       {!isLabel && <div className="font-mono text-[13px] tracking-wider text-ink-2">{ret.artifact?.code}</div>}
       <p className="max-w-xs text-center text-[12px] leading-relaxed text-muted">
         {method.instructions}
         <br />
-        <span className="text-faint">Demo placeholder. Not a real {isLabel ? "shipping label" : "return code"}.</span>
+        <span className="text-faint">
+          {demo || ret.simulated
+            ? `Demo placeholder. Not a real ${isLabel ? "shipping label" : "return code"}.`
+            : original
+              ? `From your ${retailerOf(purchase).name} return email.`
+              : "Made from the code in your return email. If the counter can’t scan it, show the original email."}
+        </span>
       </p>
+      {gmailLink && (
+        <a href={gmailLink} target="_blank" rel="noreferrer" className="text-[13px] font-medium text-ink-2 underline underline-offset-4 hover:text-ink">
+          Open the original return email
+        </a>
+      )}
     </div>
   );
 }

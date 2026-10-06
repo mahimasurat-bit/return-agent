@@ -79,7 +79,8 @@ export const FAKE_MESSAGES: GmailMessage[] = [
     '"ZARA" <noreply@zara.com>',
     "Your return request 61900432178",
     `<p>We have received your return request for order 61900432178.</p><p>TEXTURED KNIT CARDIGAN</p>
-     <p>Take your package to any UPS Store and show this code: RTN-7Q4P-ZK21</p>`,
+     <p>Take your package to any UPS Store and show this code: RTN-7Q4P-ZK21</p>
+     <img src="https://static.zara.net/returns/qr/RTN-7Q4P-ZK21.png" width="180">`,
     2,
   ),
   msg(
@@ -154,6 +155,7 @@ const RAW: Record<string, Record<string, unknown>> = {
     items: [{ name: "Textured Knit Cardigan", variant: null, price: null, quantity: 1, category: "top", image_url: null }],
     return_method: "ups",
     return_code: "RTN-7Q4P-ZK21",
+    return_code_image_url: "https://static.zara.net/returns/qr/RTN-7Q4P-ZK21.png",
     return_deadline: null,
     return_deadline_quote: null,
     refund_amount: null,

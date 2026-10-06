@@ -132,9 +132,11 @@ export type ReturnReason =
 
 export interface ReturnArtifact {
   type: "qr" | "label" | "none";
-  /** Placeholder code. In V1 this is generated locally and is NOT a real carrier code. */
+  /** The return code (from the retailer's email, or a placeholder in demo/simulated returns). */
   code: string;
   trackingNumber: string | null;
+  /** The retailer's own QR/barcode image from the return email, when one could be identified. */
+  imageUrl?: string | null;
 }
 
 export interface Return {
@@ -147,6 +149,8 @@ export interface Return {
   createdAt: ISODate;
   droppedOffAt: ISODate | null;
   artifact: ReturnArtifact | null;
+  /** The retailer's return confirmation email, when the return came from email. */
+  emailSourceId?: string | null;
   /** True when the retailer interaction was simulated (always true in V1). */
   simulated: boolean;
 }
