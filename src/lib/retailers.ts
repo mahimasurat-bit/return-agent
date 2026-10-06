@@ -66,6 +66,7 @@ export const RETAILERS: Record<RetailerId, RetailerInfo> = {
   hoka: { id: "hoka", name: "HOKA", domain: "hoka.com", demoMethods: ["ups", "fedex"] },
   sephora: { id: "sephora", name: "Sephora", domain: "sephora.com", demoMethods: ["usps", "store"] },
   aritzia: { id: "aritzia", name: "Aritzia", domain: "aritzia.com", demoMethods: ["fedex", "ups", "store"] },
+  amazon: { id: "amazon", name: "Amazon", domain: "amazon.com", demoMethods: ["ups", "store"] },
 };
 
 const DEFAULT_METHODS: ReturnMethodId[] = ["ups", "fedex", "usps", "store"];

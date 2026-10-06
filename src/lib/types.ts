@@ -31,6 +31,8 @@ export interface EmailSource {
   /** Gmail message id once real ingestion is wired up. */
   externalMessageId: string | null;
   kind: EmailKind;
+  /** Which connected inbox this came from, when more than one is connected (e.g. "Household inbox"). */
+  inboxLabel?: string | null;
   /** Order number the agent extracted from this email, used to link emails to purchases. */
   orderNumber: string | null;
   fromName: string;
@@ -49,7 +51,8 @@ export type RetailerId =
   | "target"
   | "hoka"
   | "sephora"
-  | "aritzia";
+  | "aritzia"
+  | "amazon";
 
 /** "other" = method not stated in the return email; user checks the email. */
 export type ReturnMethodId = "ups" | "fedex" | "usps" | "store" | "mail" | "other";
@@ -79,7 +82,8 @@ export type ProductCategory =
   | "dress"
   | "outerwear"
   | "beauty"
-  | "home";
+  | "home"
+  | "tech";
 
 /** How the agent knows the return deadline. Never invented. */
 export type DeadlineSource =
@@ -93,6 +97,8 @@ export interface Purchase {
   retailer: string;
   retailerName: string;
   retailerDomain: string | null;
+  /** Which connected inbox the purchase was found in, when more than one is connected. */
+  inboxLabel?: string | null;
   itemName: string;
   variant: string | null; // "Size 9 · Black"
   category: ProductCategory;

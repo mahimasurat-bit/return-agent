@@ -80,6 +80,7 @@ export function EmailSheetBody({ id }: { id: string }) {
           <div className="text-[15px] font-semibold leading-snug">{email.subject}</div>
           <div className="mt-1.5 flex flex-wrap items-center gap-x-2 text-[12px] text-muted">
             <span className="font-medium text-ink-2">{email.fromName}</span>
+            {email.inboxLabel && <span className="rounded-full bg-canvas px-2 py-0.5 text-[11px]">{email.inboxLabel}</span>}
             <span>&lt;{email.fromAddress}&gt;</span>
             <span>·</span>
             <span>{fmtDay(email.receivedAt)}</span>

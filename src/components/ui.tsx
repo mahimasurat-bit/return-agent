@@ -196,6 +196,7 @@ const GLYPHS: Record<Purchase["category"], ReactNode> = {
   ),
   beauty: <path d="M14 20h20v18a3 3 0 0 1-3 3H17a3 3 0 0 1-3-3V20Zm2-7h16v7H16v-7Zm4 15h8" />,
   home: <path d="M8 16c0-3 3-5 6-5h20c3 0 6 2 6 5v16c0 3-3 5-6 5H14c-3 0-6-2-6-5V16Zm0 6h32M8 28h32m-26-17v26" />,
+  tech: <path d="M10 26v-4a14 14 0 0 1 28 0v4M10 26h5v11h-3a2 2 0 0 1-2-2v-9Zm28 0h-5v11h3a2 2 0 0 0 2-2v-9Z" />,
 };
 
 export function ProductTile({ purchase, size = 64, className }: { purchase: Purchase; size?: number; className?: string }) {

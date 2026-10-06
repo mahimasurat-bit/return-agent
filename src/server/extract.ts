@@ -50,7 +50,7 @@ const KINDS = [
   "refund_confirmation",
   "not_shopping",
 ] as const;
-const CATEGORIES = ["shoes", "top", "bottoms", "dress", "outerwear", "beauty", "home"] as const;
+const CATEGORIES = ["shoes", "top", "bottoms", "dress", "outerwear", "beauty", "home", "tech"] as const;
 const METHODS = ["ups", "fedex", "usps", "store", "mail"] as const;
 
 export const SYSTEM_PROMPT = `You read ONE email from a person's inbox and record shopping facts about it with the record_email tool.

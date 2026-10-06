@@ -33,7 +33,14 @@ export function PurchaseCard({ purchase: p, highlight }: { purchase: Purchase; h
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <RetailerLabel purchase={p} />
+        <span className="flex min-w-0 items-center gap-2">
+          <RetailerLabel purchase={p} />
+          {p.inboxLabel && (
+            <span className="truncate rounded-full bg-canvas px-2 py-0.5 text-[10px] font-medium text-muted" title="Found in a second connected inbox">
+              {p.inboxLabel}
+            </span>
+          )}
+        </span>
         <StatusPill status={p.status} />
       </div>
 

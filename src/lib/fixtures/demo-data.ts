@@ -45,6 +45,8 @@ interface Seed {
   };
   shipmentEmail?: boolean;
   markedAt?: string;
+  /** Second connected inbox (multi-inbox demo). */
+  inbox?: string;
 }
 
 const SEEDS: Seed[] = [
@@ -242,6 +244,59 @@ const SEEDS: Seed[] = [
       tracking: "7749 1188 0263",
     },
   },
+  // ── AMAZON (from the household inbox: multi-inbox demo) ──
+  {
+    id: "p_amz_jeans",
+    retailer: "amazon",
+    itemName: "Levi's 501 Original Fit Jeans",
+    variant: "32W x 30L · Medium Stonewash",
+    category: "bottoms",
+    tint: "#ECEFF3",
+    price: 69.5,
+    orderNumber: "113-4829105-7731042",
+    orderDate: "2026-09-26",
+    deadline: "2026-10-26",
+    status: "decide",
+    inbox: "Household inbox",
+  },
+  {
+    id: "p_amz_earbuds",
+    retailer: "amazon",
+    itemName: "Bose QuietComfort Ultra Earbuds",
+    variant: "Black",
+    category: "tech",
+    tint: "#EDEDEF",
+    price: 299,
+    orderNumber: "113-2290471-5518236",
+    orderDate: "2026-09-19",
+    deadline: "2026-10-19",
+    status: "ready_to_drop_off",
+    inbox: "Household inbox",
+    ret: { reason: "Changed my mind", methodId: "store", startedAt: "2026-10-02", code: "AMZ-RT-4QX7-2KD9", tracking: null },
+  },
+  {
+    id: "p_amz_case",
+    retailer: "amazon",
+    itemName: "OtterBox Symmetry Phone Case",
+    variant: "Clear",
+    category: "tech",
+    tint: "#F1F1EE",
+    price: 49.95,
+    orderNumber: "113-7718302-0094415",
+    orderDate: "2026-09-06",
+    deadline: "2026-10-06",
+    status: "refunded",
+    inbox: "Household inbox",
+    ret: {
+      reason: "Arrived damaged",
+      methodId: "ups",
+      startedAt: "2026-09-24",
+      droppedOffAt: "2026-09-26",
+      refundedAt: "2026-10-01",
+      code: "1Z-RA-8H3K-AZ15",
+      tracking: null,
+    },
+  },
 ];
 
 function longDate(day: string) {
@@ -257,6 +312,7 @@ function addDays(day: string, n: number) {
 
 function senderFor(r: RetailerId) {
   const info = RETAILERS[r];
+  if (r === "amazon") return { fromName: "Amazon.com", fromAddress: "auto-confirm@amazon.com" };
   return { fromName: info.name, fromAddress: `orders@${info.domain}` };
 }
 
@@ -297,7 +353,8 @@ export function buildDemoDataset(discoveredAt: string): DemoDataset {
       ``,
       `Subtotal: ${money(s.price)}`,
     ];
-    if (s.deadline) body.push(``, `Free returns until ${longDate(s.deadline)}.`);
+    if (s.deadline && s.retailer === "amazon") body.push(``, `Return window closes ${longDate(s.deadline)}.`);
+    else if (s.deadline) body.push(``, `Free returns until ${longDate(s.deadline)}.`);
     else body.push(``, `See our return policy for details.`);
     body.push(``, `View your order at ${info.domain}`);
 
@@ -305,6 +362,7 @@ export function buildDemoDataset(discoveredAt: string): DemoDataset {
       id: orderEmailId,
       userId: DEMO_USER_ID,
       provider: "demo",
+      inboxLabel: s.inbox ?? null,
       externalMessageId: null,
       kind: "order_confirmation",
       orderNumber: s.orderNumber,
@@ -312,7 +370,9 @@ export function buildDemoDataset(discoveredAt: string): DemoDataset {
       subject:
         s.retailer === "target"
           ? `Thanks for your order! #${s.orderNumber}`
-          : `Your ${info.name} order ${s.orderNumber} is confirmed`,
+          : s.retailer === "amazon"
+            ? `Your Amazon.com order #${s.orderNumber}`
+            : `Your ${info.name} order ${s.orderNumber} is confirmed`,
       receivedAt: s.orderDate + "T09:12:00",
       bodyLines: body,
     });
@@ -322,6 +382,7 @@ export function buildDemoDataset(discoveredAt: string): DemoDataset {
         id: `em_${s.id}_ship`,
         userId: DEMO_USER_ID,
         provider: "demo",
+        inboxLabel: s.inbox ?? null,
         externalMessageId: null,
         kind: "shipping_confirmation",
         orderNumber: s.orderNumber,
@@ -338,6 +399,7 @@ export function buildDemoDataset(discoveredAt: string): DemoDataset {
       retailer: s.retailer,
       retailerName: info.name,
       retailerDomain: info.domain,
+      inboxLabel: s.inbox ?? null,
       itemName: s.itemName,
       variant: s.variant,
       category: s.category,
@@ -360,7 +422,7 @@ export function buildDemoDataset(discoveredAt: string): DemoDataset {
     });
 
     // Discovery activity (happens "now", when the inbox is scanned)
-    act({ purchaseId: s.id, type: "email_found", message: `Found ${info.name} order confirmation`, at: discoveredAt, simulated: false });
+    act({ purchaseId: s.id, type: "email_found", message: `Found ${info.name} order confirmation${s.inbox ? ` in ${s.inbox.toLowerCase()}` : ""}`, at: discoveredAt, simulated: false });
     act({ purchaseId: s.id, type: "order_extracted", message: `Extracted order #${s.orderNumber}`, at: discoveredAt, simulated: false });
     act({ purchaseId: s.id, type: "items_identified", message: `Identified ${s.itemName} · ${money(s.price)}`, at: discoveredAt, simulated: false });
     if (s.shipmentEmail)
@@ -381,6 +443,7 @@ export function buildDemoDataset(discoveredAt: string): DemoDataset {
         id: retEmailId,
         userId: DEMO_USER_ID,
         provider: "demo",
+        inboxLabel: s.inbox ?? null,
         externalMessageId: null,
         kind: "return_confirmation",
         orderNumber: s.orderNumber,
@@ -424,6 +487,7 @@ export function buildDemoDataset(discoveredAt: string): DemoDataset {
             id: refundEmailId,
             userId: DEMO_USER_ID,
             provider: "demo",
+            inboxLabel: s.inbox ?? null,
             externalMessageId: null,
             kind: "refund_confirmation",
             orderNumber: s.orderNumber,
@@ -463,8 +527,10 @@ export function buildDemoDataset(discoveredAt: string): DemoDataset {
     "Found Target order",
     "Found Sephora order",
     "Found Aritzia order",
-    "Saved 3 return codes from email",
-    "Detected 2 refunds",
+    "Checked household inbox",
+    "Found 3 Amazon orders",
+    "Saved 4 return codes from email",
+    "Detected 3 refunds",
   ];
 
   return { purchases, emails, returns, refunds, activities, discoveryLog };
