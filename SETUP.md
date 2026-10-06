@@ -133,6 +133,24 @@ Optional: put these in `.env.local` too and restart `npm run dev` to use Supabas
 
 `vercel.json` schedules `/api/cron/sync` once a day (13:00 UTC, about 6am Pacific). Vercel sends your `CRON_SECRET` automatically. Check it ran under Vercel → your project → **Settings → Cron Jobs** (or **Logs**). You can always hit **Sync** in the app too.
 
+## 8. Email digest (optional, about 5 minutes)
+
+Return Agent can email you instead of you opening the app: every 2 days, sooner if a return is due within 2 days, and nothing on quiet days. It needs your real Gmail connected (steps 1 to 7).
+
+1. **resend.com** → sign up **with the same email address you want digests sent to**. (Until you add your own domain, Resend only delivers to your own account email, which is exactly what a personal digest needs.)
+2. **API Keys** → **Create API key** → copy it.
+3. If your Supabase tables already exist, run this once in **SQL Editor**:
+   ```sql
+   alter table inboxes add column if not exists last_digest_at timestamptz;
+   ```
+4. Vercel → your project → **Settings → Environment Variables** → add:
+   - `RESEND_API_KEY` = the key from step 2
+   - `DIGEST_EVERY_DAYS` = `2` (optional; any number of days)
+5. **Deployments** → the latest one → **⋯ → Redeploy** (env changes need a redeploy).
+6. In the app, click **Digest** → **Send me one now** to test it.
+
+The daily job (step 7) checks Gmail every morning and sends the digest when one is due.
+
 ---
 
 ## If something goes wrong

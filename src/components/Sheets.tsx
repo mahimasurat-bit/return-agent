@@ -8,6 +8,7 @@ import { fmtDay, money, todayISO } from "@/lib/dates";
 import { RETAILERS, retailerOf, slugify } from "@/lib/retailers";
 import { useActions, useStore } from "@/lib/store";
 import { attentionItems } from "@/lib/selectors";
+import { buildDigest } from "@/lib/digest";
 import { GMAIL_QUERIES, SHOPPING_QUERY } from "@/lib/services/email-source";
 import type { EmailKind, EmailSource, Purchase } from "@/lib/types";
 import { PurchaseCard } from "./PurchaseCard";
@@ -481,5 +482,66 @@ function SetDeadline({ id }: { id: string }) {
       </span>
       <span className="text-[11px] font-normal text-muted">Check the retailer’s return policy, then set it here.</span>
     </span>
+  );
+}
+
+export function DigestSheetBody() {
+  const { state, server } = useStore();
+  const [status, setStatus] = useState<{ tone: "ok" | "err"; text: string } | null>(null);
+  const [sending, setSending] = useState(false);
+  const live = state.mode === "live";
+  const every = 2;
+  const digest = buildDigest(state, {
+    appUrl: typeof window !== "undefined" ? window.location.origin : "",
+    since: null,
+    everyDays: every,
+  });
+
+  const sendNow = async () => {
+    setSending(true);
+    setStatus(null);
+    try {
+      const r = await fetch("/api/digest/send", { method: "POST" });
+      const j = (await r.json()) as { sent: boolean; to?: string; reason?: string; detail?: string };
+      if (j.sent) setStatus({ tone: "ok", text: `Sent to ${j.to}. Check your inbox.` });
+      else if (j.reason === "not_configured")
+        setStatus({ tone: "err", text: "Email isn’t turned on yet. Add RESEND_API_KEY in Vercel (see SETUP.md)." });
+      else setStatus({ tone: "err", text: j.detail ?? "Couldn’t send the digest." });
+    } catch {
+      setStatus({ tone: "err", text: "Couldn’t reach the server." });
+    }
+    setSending(false);
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="rounded-2xl bg-canvas p-4 text-[14px] leading-relaxed text-ink-2">
+        Return Agent works in the background. Every morning it checks your inbox. Every {every} days it emails you a short
+        digest, and sooner if a return is due within 2 days. Quiet days send nothing.
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2 text-[13px]">
+        <span className="text-muted">
+          {live ? "Preview of your next digest" : "What the digest looks like for the demo inbox"}
+          {!digest.shouldSend && " · nothing to report right now, so none would be sent"}
+        </span>
+        {live && (
+          <Button size="sm" onClick={sendNow} disabled={sending || server?.digest === false}>
+            <Mail size={14} />
+            {sending ? "Sending…" : "Send me one now"}
+          </Button>
+        )}
+      </div>
+      {live && server?.digest === false && (
+        <p className="text-[12px] text-muted">Email isn’t turned on yet. Add RESEND_API_KEY in Vercel (see SETUP.md).</p>
+      )}
+      {status && <p className={cx("text-[13px]", status.tone === "ok" ? "text-money" : "text-urgent")}>{status.text}</p>}
+      <div className="overflow-hidden rounded-2xl border border-line">
+        <div className="border-b border-line-2 bg-canvas/60 px-4 py-2.5 text-[12px] text-muted">
+          <span className="font-medium text-ink-2">Return Agent: {digest.subject}</span>
+          <span className="block truncate">{digest.preheader}</span>
+        </div>
+        <iframe title="Digest preview" srcDoc={digest.html} sandbox="" className="h-[560px] w-full bg-canvas" />
+      </div>
+    </div>
   );
 }

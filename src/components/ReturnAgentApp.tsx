@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { LayoutGrid, Plus, RefreshCw, RotateCcw, ShieldCheck } from "lucide-react";
+import { LayoutGrid, Mail, Plus, RefreshCw, RotateCcw, ShieldCheck } from "lucide-react";
 import { StoreProvider, useActions, useStore } from "@/lib/store";
 import { Onboarding } from "./Onboarding";
 import { Discovery } from "./Discovery";
 import { LayoutProvider, ModularDashboard, useLayoutEditing } from "./ModularDashboard";
 import { ReturnFlow } from "./ReturnFlow";
 import { CodesSheetBody } from "./DropOff";
-import { AccountSheetBody, AddPurchaseBody, EmailSheetBody, OrderSheetBody, PrivacySheetBody, ReviewSheetBody } from "./Sheets";
+import { AccountSheetBody, AddPurchaseBody, DigestSheetBody, EmailSheetBody, OrderSheetBody, PrivacySheetBody, ReviewSheetBody } from "./Sheets";
 import { Button, Logo, Sheet } from "./ui";
 import { UIContext, useUI, type InboxTab, type SheetState } from "./ui-context";
 import { RETURN_METHODS, retailerOf } from "@/lib/retailers";
@@ -89,6 +89,10 @@ function Header() {
               <ShieldCheck size={13} />
             </button>
           )}
+          <Button size="sm" variant="secondary" onClick={() => ui.openSheet({ kind: "digest" })} aria-label="Email digest">
+            <Mail size={15} />
+            <span className="hidden sm:inline">Digest</span>
+          </Button>
           <Button
             size="sm"
             variant={editing ? "primary" : "secondary"}
@@ -230,6 +234,9 @@ function Sheets() {
       </Sheet>
       <Sheet open={s?.kind === "review"} onClose={close} title="Review returns">
         {s?.kind === "review" && <ReviewSheetBody />}
+      </Sheet>
+      <Sheet open={s?.kind === "digest"} onClose={close} title="Your digest" wide>
+        {s?.kind === "digest" && <DigestSheetBody />}
       </Sheet>
       <Sheet open={s?.kind === "account"} onClose={close} title="Gmail connection">
         {s?.kind === "account" && <AccountSheetBody />}

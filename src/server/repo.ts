@@ -24,6 +24,8 @@ export interface Inbox {
   createdAt: string;
   /** Recently checked non-shopping message ids, so they aren't sent to Claude twice. */
   skippedIds: string[];
+  /** When the last digest email went out. */
+  lastDigestAt?: string | null;
 }
 
 export interface Repo {
@@ -107,6 +109,7 @@ class SupabaseRepo implements Repo {
       needs_reauth: i.needsReauth,
       created_at: i.createdAt,
       skipped_ids: i.skippedIds.slice(-1000),
+      last_digest_at: i.lastDigestAt ?? null,
     });
     if (error) throw new Error(error.message);
   }
@@ -132,6 +135,7 @@ function fromRow(r: Record<string, unknown>): Inbox {
     needsReauth: !!r.needs_reauth,
     createdAt: r.created_at as string,
     skippedIds: (r.skipped_ids as string[]) ?? [],
+    lastDigestAt: (r.last_digest_at as string) ?? null,
   };
 }
 

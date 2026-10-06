@@ -14,6 +14,7 @@ export type SheetState =
   | { kind: "review" }
   | { kind: "privacy" }
   | { kind: "account" }
+  | { kind: "digest" }
   | null;
 
 export interface UICtx {

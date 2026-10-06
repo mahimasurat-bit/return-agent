@@ -1,7 +1,7 @@
 import { daysUntil, daysSince } from "./dates";
 import { RETURN_METHODS } from "./retailers";
 import { isRefundOverdue } from "./services/refund-monitor";
-import type { AppState } from "./store";
+import type { DataState as AppState } from "./domain";
 import type { Purchase, PurchaseStatus, Refund, Return, ReturnMethodId } from "./types";
 
 export const PENDING_RETURN: PurchaseStatus[] = ["return", "return_started", "ready_to_drop_off"];

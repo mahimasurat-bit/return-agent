@@ -15,6 +15,11 @@ export const env = {
   supabaseUrl: process.env.SUPABASE_URL ?? "",
   supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
   cronSecret: process.env.CRON_SECRET ?? "",
+  /** Digest email (Resend). Without a key, digests are skipped. */
+  resendKey: process.env.RESEND_API_KEY ?? "",
+  digestFrom: process.env.DIGEST_FROM || "Return Agent <onboarding@resend.dev>",
+  digestTo: process.env.DIGEST_TO ?? "",
+  digestEveryDays: Math.max(1, Number(process.env.DIGEST_EVERY_DAYS || 2)),
   /** How far back the first sync looks. */
   initialLookbackDays: Number(process.env.SYNC_LOOKBACK_DAYS || 60),
   /** Upper bound on emails processed per sync run (keeps runs inside the function time limit). */
@@ -24,6 +29,7 @@ export const env = {
 export interface ConfigStatus {
   gmail: boolean;
   extraction: boolean;
+  digest: boolean;
   storage: "supabase" | "local-file";
   secret: boolean;
   allowlist: boolean;
@@ -42,6 +48,7 @@ export function configStatus(): ConfigStatus {
   return {
     gmail: !!(env.googleClientId && env.googleClientSecret && env.appSecret.length >= 32 && env.allowedEmails.length),
     extraction: !!env.anthropicKey,
+    digest: !!env.resendKey,
     storage: supabase ? "supabase" : "local-file",
     secret: env.appSecret.length >= 32,
     allowlist: env.allowedEmails.length > 0,

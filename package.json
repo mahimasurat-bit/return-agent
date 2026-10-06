@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:pipeline": "LOCAL_DATA_FILE=.data/test-pipeline.json tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-pipeline.mts",
-    "dev:fake": "RA_FAKE_PROVIDERS=1 APP_SECRET=${APP_SECRET:-local-dev-secret-local-dev-secret-0001} ALLOWED_EMAILS=${ALLOWED_EMAILS:-test@example.com} LOCAL_DATA_FILE=.data/fake.json next dev"
+    "dev:fake": "RA_FAKE_PROVIDERS=1 APP_SECRET=${APP_SECRET:-local-dev-secret-local-dev-secret-0001} ALLOWED_EMAILS=${ALLOWED_EMAILS:-test@example.com} LOCAL_DATA_FILE=.data/fake.json next dev",
+    "test:digest": "LOCAL_DATA_FILE=.data/test-digest.json tsx --conditions=react-server --tsconfig tsconfig.json scripts/test-digest.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",

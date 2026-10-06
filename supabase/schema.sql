@@ -14,8 +14,12 @@ create table if not exists inboxes (
   last_synced_at     timestamptz,
   needs_reauth       boolean not null default false,
   skipped_ids        text[] not null default '{}',  -- non-shopping message ids already checked
+  last_digest_at     timestamptz,
   created_at         timestamptz not null default now()
 );
+
+-- Upgrading an existing database? This adds the digest column safely:
+alter table inboxes add column if not exists last_digest_at timestamptz;
 
 create table if not exists records (
   user_id     text not null,

@@ -27,6 +27,7 @@ export interface ServerConfig {
   /** The server is reachable and Gmail OAuth env vars are set. */
   gmail: boolean;
   extraction: boolean;
+  digest?: boolean;
   storage: string;
   missing: string[];
 }
