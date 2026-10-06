@@ -58,14 +58,30 @@ export function Onboarding() {
             </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Button size="lg" onClick={() => setConsentOpen(true)} className="sm:w-auto">
-                <Mail size={18} />
-                Connect Gmail
-              </Button>
-              <Button size="lg" variant="ghost" onClick={startDemo}>
-                Try with demo purchases
-                <ArrowRight size={16} />
-              </Button>
+              {gmailReady ? (
+                <>
+                  <Button size="lg" onClick={() => setConsentOpen(true)} className="sm:w-auto">
+                    <Mail size={18} />
+                    Connect Gmail
+                  </Button>
+                  <Button size="lg" variant="ghost" onClick={startDemo}>
+                    Try with demo purchases
+                    <ArrowRight size={16} />
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {/* Preview site (no Gmail configured): one clear path in. */}
+                  <Button size="lg" onClick={startDemo} className="sm:w-auto">
+                    Try it with a sample inbox
+                    <ArrowRight size={17} />
+                  </Button>
+                  <Button size="lg" variant="ghost" onClick={() => setConsentOpen(true)}>
+                    <Mail size={17} />
+                    How Gmail connection works
+                  </Button>
+                </>
+              )}
             </div>
             {authError && (
               <p className="mt-5 max-w-md rounded-2xl bg-urgent-bg px-4 py-3 text-[13px] leading-relaxed text-urgent">
